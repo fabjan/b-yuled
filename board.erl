@@ -16,6 +16,15 @@ col(W, Column) ->
     Tokens = [r, g, b],
     col(W - 1, [lists:nth(random:uniform(length(Tokens)), Tokens) | Column]).
 
+%% Clear groups in a board and refill recursively until there are no groups.
+no_groups(Board) ->
+    Marked = mark(Board),
+    case points(Marked) of
+        0 ->
+            Board;
+        _ -> no_groups(refill(Marked))
+    end.
+
 %% Transpose a board.
 transpose(Columns) -> % add accumulator and token
     transpose([token | Columns], []).
