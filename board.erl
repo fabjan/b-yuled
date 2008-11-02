@@ -53,3 +53,7 @@ mask_line([x | Mask], [_ | Line]) ->
     [x | mask_line(Mask, Line)];
 mask_line([_ | Mask], [E | Line]) ->
     [E | mask_line(Mask, Line)].
+
+%% Compute the score for a marked board.
+points(Board) ->
+    length(lists:filter(fun (X) -> X == x end, lists:flatten(Board))).
