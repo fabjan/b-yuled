@@ -56,11 +56,11 @@ mask_line([_ | Mask], [E | Line]) ->
 
 %% Compute the score for a marked board.
 points(Board) ->
-    length(lists:filter(fun (X) -> X == x end, lists:flatten(Board))).
+    length([ E || E <- lists:flatten(Board), E == x]).
 
 %% Clear all x from a marked board and refill with new elements.
 refill(Board) ->
     Height = length(hd(Board)),
-    Clear = lists:map(fun (C) -> lists:filter(fun (E) -> E /= x end, C) end,
-		      Board),
-    lists:map(fun (L) -> col(Height - length(L)) ++ L end, Clear).
+    Cleared = lists:map(fun (C) -> [ E || E <- C, E /= x] end,
+                        Board),
+    lists:map(fun (L) -> col(Height - length(L)) ++ L end, Cleared).
