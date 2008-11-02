@@ -3,18 +3,13 @@
 
 -compile(export_all).
 
-%% Generate a random board W by H
-new(W, H) ->
-    cols(W, H, []).
-cols(_W, 0, Columns) -> Columns;
-cols(W, H, Columns) ->
-    cols(W, H - 1, [col(W) | Columns]).
-col(W) ->
-    col(W, []).
-col(0, Column) -> Column;
-col(W, Column) ->
-    Tokens = [r, g, b],
-    col(W - 1, [lists:nth(random:uniform(length(Tokens)), Tokens) | Column]).
+%% Generate a random W by H board of Tokens.
+cols(0, _H, _Tokens) -> [];
+cols(W, H, Tokens) ->
+    [col(H, Tokens) | cols(W - 1, H, Tokens)].
+col(0, _Tokens) -> [];
+col(W, Tokens) ->
+    [lists:nth(random:uniform(length(Tokens)), Tokens) | col(W - 1)].
 
 %% Clear groups in a board and refill recursively until there are no groups.
 no_groups(Board) ->
