@@ -3,20 +3,21 @@
 
 -compile(export_all).
 
+-define(TOKENS, [r, g, b]).
+
 %% Generate a random W by H board of Tokens.
-cols(0, _H, _Tokens) -> [];
-cols(W, H, Tokens) ->
-    [col(H, Tokens) | cols(W - 1, H, Tokens)].
-col(0, _Tokens) -> [];
-col(W, Tokens) ->
-    [lists:nth(random:uniform(length(Tokens)), Tokens) | col(W - 1)].
+cols(0, _H) -> [];
+cols(W, H) ->
+    [col(H) | cols(W - 1, H)].
+col(0) -> [];
+col(W) ->
+    [lists:nth(random:uniform(length(?TOKENS)), ?TOKENS) | col(W - 1)].
 
 %% Clear groups in a board and refill recursively until there are no groups.
 no_groups(Board) ->
     Marked = mark(Board),
     case points(Marked) of
-        0 ->
-            Board;
+        0 -> Board;
         _ -> no_groups(refill(Marked))
     end.
 
@@ -29,6 +30,28 @@ transpose([token, [Head | Tail] | Columns], Rows) -> % create a new column
     transpose(Columns ++ [token | [Tail]], [[Head] | Rows]);
 transpose([[Head | Tail] | Columns], [Row | Rows]) -> % keep on truckin'
     transpose(Columns ++ [Tail], [[Head | Row] | Rows]).
+
+%% Returns an element at a given coordinate in a board.
+get_element(Board, {X, Y}) ->
+    lists:nth(Y, lists:nth(X, Board)).
+
+%% Apply a function on a single element in a list,
+%% and replace the element with the result.
+apply_nth([Head | Tail], 1, Fun) ->
+    [Fun(Head) | Tail];
+apply_nth([Head | Tail], N, Fun) when N > 1 ->
+    [Head | apply_nth(Tail, N - 1, Fun)].
+
+%% Sets the element at a given coordinate in a board to a new element.
+set_element(Board, {X, Y}, Element) ->
+    ReplaceInCol = fun (C) -> apply_nth(C, Y, fun (_) -> Element end) end,
+    apply_nth(Board, X, ReplaceInCol).
+
+%% Swaps two elements in a board.
+swap(Board, {X1, Y1}, {X2, Y2}) ->
+    A = get_element(Board, {X1, Y1}),
+    B = get_element(Board, {X2, Y2}),
+    set_element(set_element(Board, {X1, Y1}, B), {X2, Y2}, A).
 
 %% Replace all groups of three or more in the board with x.
 mark(Board) ->
