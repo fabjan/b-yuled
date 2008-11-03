@@ -5,20 +5,23 @@
 
 -define(TOKENS, [r, g, b]).
 
-%% Generate a random W by H board of Tokens.
-cols(0, _H) -> [];
-cols(W, H) ->
-    [col(H) | cols(W - 1, H)].
-col(0) -> [];
-col(W) ->
-    [lists:nth(random:uniform(length(?TOKENS)), ?TOKENS) | col(W - 1)].
+%% Generate a W by H board of elements in 1..N.
+new(W, H, N) ->
+    no_groups(cols(W, H, N), N).
+cols(0, _H, _N) -> [];
+cols(W, H, N) ->
+    [col(H, N) | cols(W - 1, H, N)].
+col(0, _N) -> [];
+col(W, N) ->
+    [random:uniform(N) | col(W - 1, N)].
 
-%% Clear groups in a board and refill recursively until there are no groups.
-no_groups(Board) ->
+%% Clear groups in a board and refill from 1..N recursively until
+%% there are no groups.
+no_groups(Board, N) ->
     Marked = mark(Board),
     case points(Marked) of
         0 -> Board;
-        _ -> no_groups(refill(Marked))
+        _ -> no_groups(refill(Marked, N), N)
     end.
 
 %% Transpose a board.
@@ -35,8 +38,8 @@ transpose([[Head | Tail] | Columns], [Row | Rows]) -> % keep on truckin'
 get_element(Board, {X, Y}) ->
     lists:nth(Y, lists:nth(X, Board)).
 
-%% Apply a function on a single element in a list,
-%% and replace the element with the result.
+%% Apply a function on the Nth element in a list, and replace the
+%% element with the result.
 apply_nth([Head | Tail], 1, Fun) ->
     [Fun(Head) | Tail];
 apply_nth([Head | Tail], N, Fun) when N > 1 ->
@@ -85,9 +88,9 @@ mask_line([_ | Mask], [E | Line]) ->
 points(Board) ->
     length([ E || E <- lists:flatten(Board), E == x]).
 
-%% Clear all x from a marked board and refill with new elements.
-refill(Board) ->
+%% Clear all x from a marked board and refill with new elements from 1..N.
+refill(Board, N) ->
     Height = length(hd(Board)),
     Cleared = lists:map(fun (C) -> [ E || E <- C, E /= x] end,
                         Board),
-    lists:map(fun (L) -> col(Height - length(L)) ++ L end, Cleared).
+    lists:map(fun (L) -> col(Height - length(L), N) ++ L end, Cleared).
