@@ -49,7 +49,8 @@ set_element(Board, {X, Y}, Element) ->
     apply_nth(Board, X, ReplaceInCol).
 
 %% Swaps two elements in a board.
-swap(Board, {X1, Y1}, {X2, Y2}) ->
+swap(Board, {X1, Y1}, {X2, Y2})
+  when abs(X1 - X2) == 1, Y1 == Y2; abs(Y1 - Y2) == 1, X1 == X2 ->
     A = get_element(Board, {X1, Y1}),
     B = get_element(Board, {X2, Y2}),
     set_element(set_element(Board, {X1, Y1}, B), {X2, Y2}, A).
