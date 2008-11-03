@@ -3,8 +3,6 @@
 
 -compile(export_all).
 
--define(TOKENS, [r, g, b]).
-
 %% Generate a W by H board of elements in 1..N.
 new(W, H, N) ->
     no_groups(cols(W, H, N), N).
