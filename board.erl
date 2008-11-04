@@ -4,7 +4,8 @@
 -compile(export_all).
 
 %% Generate a W by H board of elements in 1..N.
-new(W, H, N) ->
+new(W, H, N)
+  when W > 0, H > 0, N > 0 ->
     no_groups(cols(W, H, N), N).
 cols(0, _H, _N) -> [];
 cols(W, H, N) ->
@@ -15,7 +16,8 @@ col(W, N) ->
 
 %% Clear groups in a board and refill from 1..N recursively until
 %% there are no groups.
-no_groups(Board, N) ->
+no_groups(Board, N)
+  when N > 0 ->
     Marked = mark(Board),
     case points(Marked) of
         0 -> Board;
@@ -33,18 +35,21 @@ transpose([[Head | Tail] | Columns], [Row | Rows]) -> % keep on truckin'
     transpose(Columns ++ [Tail], [[Head | Row] | Rows]).
 
 %% Returns an element at a given coordinate in a board.
-get_element(Board, {X, Y}) ->
+get_element(Board, {X, Y})
+  when X > 0, Y > 0 ->
     lists:nth(Y, lists:nth(X, Board)).
 
 %% Apply a function on the Nth element in a list, and replace the
 %% element with the result.
 apply_nth([Head | Tail], 1, Fun) ->
     [Fun(Head) | Tail];
-apply_nth([Head | Tail], N, Fun) when N > 1 ->
+apply_nth([Head | Tail], N, Fun)
+  when N > 1 ->
     [Head | apply_nth(Tail, N - 1, Fun)].
 
 %% Sets the element at a given coordinate in a board to a new element.
-set_element(Board, {X, Y}, Element) ->
+set_element(Board, {X, Y}, Element)
+  when X > 0, Y > 0 ->
     ReplaceInCol = fun (C) -> apply_nth(C, Y, fun (_) -> Element end) end,
     apply_nth(Board, X, ReplaceInCol).
 
@@ -88,7 +93,8 @@ points(Board) ->
     length([ E || E <- lists:flatten(Board), E == x]).
 
 %% Clear all x from a marked board and refill with new elements from 1..N.
-refill(Board, N) ->
+refill(Board, N)
+  when N > 0 ->
     Height = length(hd(Board)),
     Cleared = lists:map(fun (C) -> [ E || E <- C, E /= x] end,
                         Board),
