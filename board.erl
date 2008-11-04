@@ -96,6 +96,5 @@ points(Board) ->
 refill(Board, N)
   when N > 0 ->
     Height = length(hd(Board)),
-    Cleared = lists:map(fun (C) -> [ E || E <- C, E /= x] end,
-                        Board),
+    Cleared = lists:map(fun (C) -> [ E || E <- C, E /= x] end, Board),
     lists:map(fun (L) -> col(Height - length(L), N) ++ L end, Cleared).
