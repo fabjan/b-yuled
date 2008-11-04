@@ -98,3 +98,7 @@ refill(Board, N)
     Height = length(hd(Board)),
     Cleared = lists:map(fun (C) -> [ E || E <- C, E /= x] end, Board),
     lists:map(fun (L) -> col(Height - length(L), N) ++ L end, Cleared).
+
+%% Clear all marked elements on a board
+sweep(Board) ->
+    lists:map(fun (C) -> [ E || E <- C, E /= x] end, Board).
