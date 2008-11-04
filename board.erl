@@ -5,7 +5,7 @@
 
 %% Generate a W by H board of elements in 1..N.
 new(W, H, N)
-  when W > 0, H > 0, N > 0 ->
+  when W > 0, H > 0, N > 1 ->
     no_groups(cols(W, H, N), N).
 cols(0, _H, _N) -> [];
 cols(W, H, N) ->
@@ -17,7 +17,7 @@ col(W, N) ->
 %% Clear groups in a board and refill from 1..N recursively until
 %% there are no groups.
 no_groups(Board, N)
-  when N > 0 ->
+  when N > 1 ->
     Marked = mark(Board),
     case points(Marked) of
         0 -> Board;
@@ -28,7 +28,7 @@ no_groups(Board, N)
 transpose(Columns) -> % add accumulator and token
     transpose([token | Columns], []).
 transpose([token,[] | _], Rows) -> % base case, we're done
-    lists:reverse(lists:map(fun lists:reverse/1, Rows));
+    lists:reverse([lists:reverse(Row) || Row <- Rows]);
 transpose([token, [Head | Tail] | Columns], Rows) -> % create a new column
     transpose(Columns ++ [token | [Tail]], [[Head] | Rows]);
 transpose([[Head | Tail] | Columns], [Row | Rows]) -> % keep on truckin'
@@ -44,7 +44,7 @@ get_element(Board, {X, Y})
 apply_nth([Head | Tail], 1, Fun) ->
     [Fun(Head) | Tail];
 apply_nth([Head | Tail], N, Fun)
-  when N > 1 ->
+  when N > 1, N <= length(Tail) + 1 ->
     [Head | apply_nth(Tail, N - 1, Fun)].
 
 %% Sets the element at a given coordinate in a board to a new element.
@@ -67,19 +67,19 @@ mark(Board) ->
 
 %% Replace all elements in column groups of three or more with x.
 mark_cols(Board) ->
-    lists:map(fun mark_line/1, Board).
+    [mark_line(Col) || Col <- Board].
 
 %% Replace all elements in row groups of three or more with x.
 mark_rows(Board) ->
-    lists:map(fun mark_line/1, transpose(Board)).
+    [mark_line(Row) || Row <- transpose(Board)].
 
 %% Replace all elements in groups of three or more with x in a line.
 mark_line([]) -> [];
 mark_line([E, E, E | Tail]) ->
     {Group, Rest} = lists:splitwith(fun (X) -> X == E end, Tail),
-    [x, x, x | lists:map(fun (_) -> x end, Group)] ++ mark_line(Rest);
+    [x, x, x | [x || _ <- Group]] ++ mark_line(Rest);
 mark_line([E | Tail]) ->
-    [E] ++ mark_line(Tail).
+    [E | mark_line(Tail)].
 
 %% Mask a line with x.
 mask_line([], []) -> [];
@@ -94,10 +94,10 @@ points(Board) ->
 
 %% Clear all x from a marked board and refill with new elements from 1..N.
 refill(Board, N)
-  when N > 0 ->
+  when N > 1 ->
     Height = length(hd(Board)),
-    Cleared = lists:map(fun (C) -> [ E || E <- C, E /= x] end, Board),
-    lists:map(fun (L) -> col(Height - length(L), N) ++ L end, Cleared).
+    Cleared = [[ E || E <- C, E /= x] || C <- Board],
+    [col(Height - length(L), N) ++ L || L <- Cleared].
 
 %% Clear all marked elements on a board
 sweep(Board) ->
