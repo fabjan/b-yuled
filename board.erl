@@ -2,6 +2,7 @@
 -author('sempetmer@gmail.com').
 
 -compile(export_all).
+-export([new/3, swap/3]).
 
 %% Generate a W by H board of elements in 1..N.
 new(W, H, N)
