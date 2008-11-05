@@ -63,7 +63,9 @@ swap(Board, {X1, Y1}, {X2, Y2})
   when abs(X1 - X2) == 1, Y1 == Y2; abs(Y1 - Y2) == 1, X1 == X2 ->
     A = get_element(Board, {X1, Y1}),
     B = get_element(Board, {X2, Y2}),
-    set_element(set_element(Board, {X1, Y1}, B), {X2, Y2}, A).
+    {ok, set_element(set_element(Board, {X1, Y1}, B), {X2, Y2}, A)};
+swap(_, _, _) ->
+    {error, "only adjacent elements can be marked"}.
 
 %% Replace all groups of three or more in the board with x.
 mark(Board) ->
