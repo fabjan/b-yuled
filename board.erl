@@ -7,7 +7,8 @@
 %% Generate a W by H board of elements in 1..N.
 new(W, H, N)
   when W > 0, H > 0, N > 1 ->
-    no_groups(cols(W, H, N), N).
+    {[Board | _Boards], _Points} = no_groups(cols(W, H, N), N),
+    Board.
 cols(0, _H, _N) -> [];
 cols(W, H, N) ->
     [col(H, N) | cols(W - 1, H, N)].
