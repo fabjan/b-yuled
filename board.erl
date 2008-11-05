@@ -49,7 +49,7 @@ get_element(Board, {X, Y})
 apply_nth([Head | Tail], 1, Fun) ->
     [Fun(Head) | Tail];
 apply_nth([Head | Tail], N, Fun)
-  when N > 1, N <= length(Tail) + 1 ->
+  when N > 1, N =< length(Tail) + 1 ->
     [Head | apply_nth(Tail, N - 1, Fun)].
 
 %% Sets the element at a given coordinate in a board to a new element.
