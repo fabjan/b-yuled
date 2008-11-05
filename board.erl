@@ -63,9 +63,16 @@ swap(Board, {X1, Y1}, {X2, Y2})
   when abs(X1 - X2) == 1, Y1 == Y2; abs(Y1 - Y2) == 1, X1 == X2 ->
     A = get_element(Board, {X1, Y1}),
     B = get_element(Board, {X2, Y2}),
-    {ok, set_element(set_element(Board, {X1, Y1}, B), {X2, Y2}, A)};
+    NewBoard = set_element(set_element(Board, {X1, Y1}, B), {X2, Y2}, A),
+    case points(mark(NewBoard)) of
+        P when P > 0 ->
+            {ok, NewBoard};
+        _ ->
+            {error, "only scoring pairs can be swapped"}
+    end;
+
 swap(_, _, _) ->
-    {error, "only adjacent elements can be marked"}.
+    {error, "only adjacent elements can be swapped"}.
 
 %% Replace all groups of three or more in the board with x.
 mark(Board) ->
