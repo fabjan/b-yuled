@@ -19,10 +19,14 @@ col(W, N) ->
 %% there are no groups.
 no_groups(Board, N)
   when N > 1 ->
+    no_groups(Board, N, [], 0).
+no_groups(Board, N, Boards, Points) ->
     Marked = mark(Board),
     case points(Marked) of
-        0 -> Board;
-        _ -> no_groups(refill(Marked, N), N)
+        0 -> {[Board | Boards], Points};
+        MorePoints -> no_groups(refill(Marked, N), N,
+                                [Marked, Board] ++ Boards,
+                                Points + MorePoints)
     end.
 
 %% Transpose a board.
