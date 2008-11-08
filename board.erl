@@ -1,7 +1,7 @@
 -module(board).
 -author('sempetmer@gmail.com').
 
--export([new/3, swap/3, width/1, height/1, get_element/2, no_groups/1]).
+-export([new/3, swap/3, width/1, height/1, get_element/2, no_groups/2]).
 
 %% Generate a W by H board of elements in 1..N.
 new(W, H, N)
