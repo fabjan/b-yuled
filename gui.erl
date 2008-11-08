@@ -17,7 +17,7 @@ init() ->
     H       = 200,
     WH      = [{width, W}, {height, H}],
     Window  = gs:window(Server, [{configure,true} | WH]),
-    Game    = game:new(8, 8, 4),
+    Game    = game:new(8, 8, 5),
     Display = display(Game, Window),
     config(Display,WH),
     gs:config(Window, {map,true}),
@@ -56,7 +56,7 @@ display(Game, Window) ->
                          Y <- lists:seq(1, Height)],
     Buttons = [button(Coord, Frame, Game) || Coord <- Coords],
     Points  = gs:label(Frame, [{label, {text, "Score: 0"}},
-                               {pack_xy, {{1, Width}, Height}}]),
+                               {pack_xy, {{1, Width}, Height + 1}}]),
     #display{frame = Frame, width = Width, height = Height,
              buttons = Buttons, points = Points}.
 
@@ -78,7 +78,8 @@ update(#display{buttons = Buttons, points = Points}, Game) ->
         yes ->
             gs:config(Points, [{label, {text, "Score: " ++ Score}}]);
         _ ->
-            gs:config(Points, [{label, {text, "GAME OVER, Score: " ++ Score}}])
+            gs:config(Points, [{label, {text, "GAME OVER, Score: " ++ Score}},
+                               {bg, red}])
     end.
 
 %% Update the color and image of Button to the correct element in Game.
@@ -99,7 +100,7 @@ animate(Moves, Display) ->
                   Moves).
 
 color(N) ->
-    lists:nth(N, [red, {0,128,0}, {192, 100, 0}, yellow]).
+    lists:nth(N, [red, {0,128,0}, {192, 100, 0}, yellow, {64, 128, 255}]).
 
 image(N) ->
     {image, integer_to_list(N) ++ ".xbm"}.
