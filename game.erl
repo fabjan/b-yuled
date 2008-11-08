@@ -34,15 +34,17 @@ mark(Game = #game{board = Board, mark = Mark1}, Mark2) ->
             Points = Game#game.points,
             %% Recursively remove any groups that were made, until
             %% there are none.
-            {Boards, NewPoints} = board:no_groups(SwappedBoard, Tokens),
-            NewGame = Game#game{board = hd(Boards),
+            {[NewBoard | Boards], NewPoints} = board:no_groups(SwappedBoard,
+                                                               Tokens),
+            NewGame = Game#game{board = NewBoard,
                                 mark = nil,
                                 points = Points + NewPoints},
+            Moves = [Game#game{board = B, mark = nil} || B <- Boards],
             case moves_left(NewGame) of
                 true ->
-                    {NewGame, Boards};
+                    {NewGame, Moves};
                 _ ->
-                    {NewGame#game{live = no}, Boards}
+                    {NewGame#game{live = no}, Moves}
             end;
         _ ->
             Game#game{mark = Mark2}
