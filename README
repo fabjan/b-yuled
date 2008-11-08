@@ -1,1 +1,5 @@
-Compile board.erl, game.erl, and gui.erl. Run gui:start()
+1. Install Erlang/OTP
+
+2. make
+
+3. make run
