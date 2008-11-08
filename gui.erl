@@ -4,7 +4,7 @@
 -record(display, {frame, width, height, buttons, points}).
 -record(state, {game, display, window, dimensions}).
 
--export(start/0).
+-export([start/0]).
 
 start() ->
     spawn(?MODULE, init, []).
