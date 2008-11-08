@@ -31,6 +31,7 @@ loop(State) ->
         {gs, _Button, click, Data, _Args} ->
             case game:mark(State#state.game, Data) of
                 {NewGame, Moves} ->
+                    animate(Moves, State#state.display),
                     update(State#state.display, NewGame),
                     loop(State#state{game = NewGame});
                 NewGame ->
@@ -84,12 +85,18 @@ update(#display{buttons = Buttons, points = Points}, Game) ->
 update_button(Button, Game) ->
     Coord   = gs:read(Button, data),
     Element = game:get_element(Game, Coord),
-    case game:marked(Game) of
-        Coord ->
+    case {Element, game:marked(Game)} of
+        {_, Coord} ->
             gs:config(Button, [{label, image(Element)}, {bg, white}]);
+        {x, _} ->
+            gs:config(Button, [{label, {text, ""}}, {bg, white}]);
         _ ->
             gs:config(Button, [{label, image(Element)}, {bg, color(Element)}])
     end.
+
+animate(Moves, Display) ->
+    lists:foreach(fun (Move) -> update(Display, Move), timer:sleep(100) end,
+                  Moves).
 
 color(N) ->
     lists:nth(N, [red, {0,128,0}, {192, 100, 0}, yellow]).
