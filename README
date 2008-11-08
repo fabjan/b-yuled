@@ -1,0 +1,1 @@
+Compile board.erl, game.erl, and gui.erl. Run gui:start()
