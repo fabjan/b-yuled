@@ -4,7 +4,7 @@
 -record(display, {frame, width, height, buttons, points}).
 -record(state, {game, display, window, dimensions}).
 
--export([start/0]).
+-export([start/0, init/0]).
 
 start() ->
     spawn(?MODULE, init, []).
@@ -84,7 +84,7 @@ update(#display{buttons = Buttons, points = Points}, Game) ->
 update_button(Button, Game) ->
     Coord   = gs:read(Button, data),
     Element = game:get_element(Game, Coord),
-    case game:mark(Game) of
+    case game:marked(Game) of
         Coord ->
             gs:config(Button, [{label, image(Element)}, {bg, white}]);
         _ ->
