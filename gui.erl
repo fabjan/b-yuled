@@ -9,6 +9,7 @@
 start() ->
     spawn(?MODULE, init, []).
 
+%% Create a new game, setup a window and begin listening to input.
 init() ->
     {A, B, C} = now(), random:seed(A, B, C),
     Server  = gs:start(),
@@ -22,8 +23,11 @@ init() ->
     gs:config(Window, {map,true}),
     loop(#state{game = Game, window = Window, display = Display}).
 
+%% Listen for input from buttons or resizing of the window.
 loop(State) ->
     receive
+        %% We got a button click, mark the coordinates on the board
+        %% and show the new state.
         {gs, _Button, click, Data, _Args} ->
             case game:mark(State#state.game, Data) of
                 {NewGame, Moves} ->
@@ -33,12 +37,14 @@ loop(State) ->
                     update(State#state.display, NewGame),
                     loop(State#state{game = NewGame})
             end;
+        %% Resizing the window, make sure the display is updated.
         {gs,_Id,configure,_Data,[W,H|_]} ->
             WH = [{width,W},{height,H}],
             config(State#state.display,WH),
             loop(State)
     end.
 
+%% Create a display for Game in Window.
 display(Game, Window) ->
     Width   = game:width(Game),
     Height  = game:height(Game),
@@ -53,14 +59,17 @@ display(Game, Window) ->
     #display{frame = Frame, width = Width, height = Height,
              buttons = Buttons, points = Points}.
 
+%% Resize Display to WH.
 config(#display{frame = Frame}, WH) ->
     gs:config(Frame, WH).
 
+%% Create a button in Frame for the element at Coord in Game.
 button(Coord, Frame, Game) ->
     Element = game:get_element(Game, Coord),
     gs:button(Frame, [{data, Coord}, {pack_xy, Coord},
                       {label, image(Element)}, {bg, color(Element)}]).
 
+%% Update the buttons and score label to correspond with Game.
 update(#display{buttons = Buttons, points = Points}, Game) ->
     lists:foreach(fun (Button) -> update_button(Button, Game) end, Buttons),
     Score = integer_to_list(game:points(Game)),
@@ -71,6 +80,7 @@ update(#display{buttons = Buttons, points = Points}, Game) ->
             gs:config(Points, [{label, {text, "GAME OVER, Score: " ++ Score}}])
     end.
 
+%% Update the color and image of Button to the correct element in Game.
 update_button(Button, Game) ->
     Coord   = gs:read(Button, data),
     Element = game:get_element(Game, Coord),
