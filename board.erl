@@ -117,3 +117,9 @@ refill(Board, N)
 %% Clear all marked elements on a board
 sweep(Board) ->
     lists:map(fun (C) -> [ E || E <- C, E /= x] end, Board).
+
+width(Board) ->
+    length(Board).
+
+height(Board) ->
+    length(hd(Board)).

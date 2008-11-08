@@ -5,45 +5,65 @@
 
 -record(game, {board, tokens, mark, points, state}).
 
-new(W, H, N) ->
+%% Create a new game with N tokens.
+new(W, H, N)
+  when N > 1 ->
     new(W, H, N, #game{board = board:new(W, H, N), tokens = N, mark = nil,
                        points = 0, state = alive}).
 new(W, H, N, Game) ->
+    %% Make sure there are moves to do when the game starts.
     case moves_left(Game) of
         true -> Game;
         _    -> new(W, H, N)
     end.
 
+%% Mark a token in the board. If a token is aleady marked, either swap
+%% the marked tokens if allowed, or mark the new one.  Returns the new
+%% game, or {NewGame, Games} where Games are the groups that were made
+%% and removed if a swap was made.
 mark(Game = #game{state = dead}, _Mark) ->
-    {dead, Game};
+    Game;
 mark(Game = #game{mark = nil}, Mark) ->
-    {new, Game#game{mark = Mark}};
+    Game#game{mark = Mark};
 mark(Game = #game{board = Board, mark = Mark1}, Mark2) ->
     case board:swap(Board, Mark1, Mark2) of
         {ok, SwappedBoard} ->
             Tokens = Game#game.tokens,
             Points = Game#game.points,
+            %% Remove any groups that were made recursively until
+            %% there are none.
             {Boards, NewPoints} = board:no_groups(SwappedBoard, Tokens),
             NewGame = Game#game{board = hd(Boards),
                                 mark = nil,
                                 points = Points + NewPoints},
             case moves_left(NewGame) of
                 true ->
-                    {swap, NewGame, Boards};
+                    {NewGame, Boards};
                 _ ->
-                    {dead, NewGame, Boards}
+                    {NewGame#game{state = dead}, Boards}
             end;
         _ ->
-            {new, Game#game{mark = Mark2}}
+            Game#game{mark = Mark2}
     end.
 
-board(#game{board = Board}) ->
-    Board.
+mark(#game{mark = Mark}) ->
+    Mark.
 
-moves_left(Game) ->
-    Board  = board(Game),
-    Width  = length(Board),
-    Height = length(hd(Board)),
+width(#game{board = Board}) ->
+    board:width(Board).
+
+height(#game{board = Board}) ->
+    board:height(Board).
+
+points(#game{points = Points}) ->
+    Points.
+
+get_element(#game{board = Board}, Coord) ->
+    board:get_element(Board, Coord).
+
+moves_left(#game{board = Board}) ->
+    Width  = board:width(Board),
+    Height = board:height(Board),
     Coords = [{X, Y} || X <- lists:seq(1, Width),
                         Y <- lists:seq(1, Height)],
     LegalMoves = [{C1, C2} || C1 <- Coords,

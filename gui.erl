@@ -2,90 +2,78 @@
 -author('sempetmer@gmail.com').
 
 -compile(export_all).
--record(state, {game, window, frame, dimensions, selected}).
+-record(display, {frame, width, height, buttons, points}).
+-record(state, {game, display, window, dimensions}).
 
 start() ->
     spawn(?MODULE, init, []).
 
 init() ->
     {A, B, C} = now(), random:seed(A, B, C),
-    Server = gs:start(),
-    W      = 200,
-    H      = 200,
-    WH     = [{width, W}, {height, H}],
-    Window = gs:window(Server, [{configure,true} | WH]),
-    Game   = game:new(8, 8, 4),
-    Board  = game:board(Game),
-    Frame  = frame(Board, Window),
-    buttons(Board, Frame),
+    Server  = gs:start(),
+    W       = 200,
+    H       = 200,
+    WH      = [{width, W}, {height, H}],
+    Window  = gs:window(Server, [{configure,true} | WH]),
+    Game    = game:new(8, 8, 4),
+    Display = display(Game, Window),
+    config(Display,WH),
     gs:config(Window, {map,true}),
-    gs:config(Frame,WH),
-    loop(#state{game = Game, window = Window, frame = Frame, dimensions = {W, H}}).
+    loop(#state{game = Game, window = Window, display = Display}).
 
-loop(State = #state{selected = undefined}) ->
+loop(State) ->
     receive
         {gs, Button, click, Data, _Args} ->
-            io:format("Data: ~p~nState: ~p~n~n", [Data, State]),
             case game:mark(State#state.game, Data) of
-                {new, NewGame} ->
-                    mark(Button),
-                    loop(State#state{game = NewGame,
-                                     selected = Button});
-                {swap, NewGame, _Boards} ->
-                    Board    = game:board(NewGame),
-                    NewFrame = frame(Board, State#state.window),
-                    buttons(Board, NewFrame),
-                    {W, H} = State#state.dimensions,
-                    gs:config(NewFrame,[{width,W},{height,H}]),
-                    gs:destroy(State#state.frame),
-                    loop(State#state{game = NewGame,
-                                     frame = NewFrame,
-                                     selected = undefined})
+                {NewGame, Moves} ->
+                    update(State#state.display, NewGame),
+                    loop(State#state{game = NewGame});
+                NewGame ->
+                    update(State#state.display, NewGame),
+                    loop(State#state{game = NewGame})
             end;
         {gs,_Id,configure,_Data,[W,H|_]} ->
-            gs:config(State#state.frame,[{width,W},{height,H}]),
-            loop(State#state{dimensions = {W, H}})
-    end;
-loop(State = #state{selected = SButton}) ->
-    receive
-        {gs, Button, click, Data, _Args} ->
-            io:format("Data: ~p~nState: ~p~n~n", [Data, State]),
-            case game:mark(State#state.game, Data) of
-                {new, NewGame} ->
-                    unmark(SButton, board:get_element(game:board(NewGame), Data)),
-                    mark(Button),
-                    loop(State#state{game = NewGame,
-                                     selected = Button});
-                {swap, NewGame, _Boards} ->
-                    Board    = game:board(NewGame),
-                    NewFrame = frame(Board, State#state.window),
-                    buttons(Board, NewFrame),
-                    {W, H} = State#state.dimensions,
-                    gs:config(NewFrame,[{width,W},{height,H}]),
-                    gs:destroy(State#state.frame),
-                    loop(State#state{game = NewGame,
-                                     frame = NewFrame,
-                                     selected = undefined})
-            end;
-        {gs,_Id,configure,_Data,[W,H|_]} ->
-            gs:config(State#state.frame,[{width,W},{height,H}]),
-            loop(State#state{dimensions = {W, H}})
+            WH = [{width,W},{height,H}],
+            config(State#state.display,WH),
+            loop(State)
     end.
 
-frame(Board, Parent) ->
-    Columns = lists:duplicate(length(Board), {stretch, 1, 16}),
-    Rows = lists:duplicate(length(hd(Board)), {stretch, 1, 16}),
-    gs:frame(Parent, [{packer_x, Columns}, {packer_y, Rows}]).
+display(Game, Window) ->
+    Width   = game:width(Game),
+    Height  = game:height(Game),
+    Columns = lists:duplicate(Width, {stretch, 1, 16}),
+    Rows    = lists:duplicate(Height + 1, {stretch, 1, 16}),
+    Frame   = gs:frame(Window, [{packer_x, Columns}, {packer_y, Rows}]),
+    Coords  = [{X, Y} || X <- lists:seq(1, Width),
+                         Y <- lists:seq(1, Height)],
+    Buttons = [button(Coord, Frame, Game) || Coord <- Coords],
+    Points  = gs:label(Frame, [{label, {text, "Score: 0"}},
+                               {pack_xy, {{1, Width}, Height}}]),
+    #display{frame = Frame, width = Width, height = Height,
+             buttons = Buttons, points = Points}.
 
-buttons(Board, Frame) ->
-    Width  = length(Board),
-    Height = length(hd(Board)),
-    Coords = [{X,Y} || X <- lists:seq(1, Width), Y <- lists:seq(1, Height)],
-    lists:foreach(fun (Coord) ->
-                          Element = board:get_element(Board, Coord),
-                          gs:button(Frame, [{data, Coord}, {pack_xy, Coord},
-                                            {label, image(Element)},
-                                            {bg, color(Element)}]) end, Coords).
+config(#display{frame = Frame}, WH) ->
+    gs:config(Frame, WH).
+
+button(Coord, Frame, Game) ->
+    Element = game:get_element(Game, Coord),
+    gs:button(Frame, [{data, Coord}, {pack_xy, Coord},
+                      {label, image(Element)}, {bg, color(Element)}]).
+
+update(#display{buttons = Buttons, points = Points}, Game) ->
+    lists:foreach(fun (Button) -> update_button(Button, Game) end, Buttons),
+    gs:config(Points,
+              [{label, {text, "Score: " ++ integer_to_list(game:points(Game))}}]).
+
+update_button(Button, Game) ->
+    Coord   = gs:read(Button, data),
+    Element = game:get_element(Game, Coord),
+    case game:mark(Game) of
+        Coord ->
+            gs:config(Button, [{label, image(Element)}, {bg, white}]);
+        _ ->
+            gs:config(Button, [{label, image(Element)}, {bg, color(Element)}])
+    end.
 
 color(N) ->
     lists:nth(N, [red, {0,128,0}, {192, 100, 0}, yellow]).
