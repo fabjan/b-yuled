@@ -1,15 +1,17 @@
 -module(game).
 -author('sempetmer@gmail.com').
 
--compile(export_all).
+-export([new/3, mark/2,
+         marked/1, width/1, height/1, points/1, live/1,
+         get_element/1]).
 
--record(game, {board, tokens, mark, points, state}).
+-record(game, {board, tokens, mark, points, live}).
 
 %% Create a new game with N tokens.
 new(W, H, N)
   when N > 1 ->
     new(W, H, N, #game{board = board:new(W, H, N), tokens = N, mark = nil,
-                       points = 0, state = alive}).
+                       points = 0, live = yes}).
 new(W, H, N, Game) ->
     %% Make sure there are moves to do when the game starts.
     case moves_left(Game) of
@@ -21,7 +23,7 @@ new(W, H, N, Game) ->
 %% the marked tokens if allowed, or mark the new one.  Returns the new
 %% game, or {NewGame, Games} where Games are the groups that were made
 %% and removed if a swap was made.
-mark(Game = #game{state = dead}, _Mark) ->
+mark(Game = #game{live = no}, _Mark) ->
     Game;
 mark(Game = #game{mark = nil}, Mark) ->
     Game#game{mark = Mark};
@@ -40,13 +42,13 @@ mark(Game = #game{board = Board, mark = Mark1}, Mark2) ->
                 true ->
                     {NewGame, Boards};
                 _ ->
-                    {NewGame#game{state = dead}, Boards}
+                    {NewGame#game{live = no}, Boards}
             end;
         _ ->
             Game#game{mark = Mark2}
     end.
 
-mark(#game{mark = Mark}) ->
+marked(#game{mark = Mark}) ->
     Mark.
 
 width(#game{board = Board}) ->
@@ -57,6 +59,9 @@ height(#game{board = Board}) ->
 
 points(#game{points = Points}) ->
     Points.
+
+live(#game{live = Answer}) ->
+    Answer.
 
 get_element(#game{board = Board}, Coord) ->
     board:get_element(Board, Coord).

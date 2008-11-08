@@ -1,9 +1,10 @@
 -module(gui).
 -author('sempetmer@gmail.com').
 
--compile(export_all).
 -record(display, {frame, width, height, buttons, points}).
 -record(state, {game, display, window, dimensions}).
+
+-export(start/0).
 
 start() ->
     spawn(?MODULE, init, []).
@@ -23,7 +24,7 @@ init() ->
 
 loop(State) ->
     receive
-        {gs, Button, click, Data, _Args} ->
+        {gs, _Button, click, Data, _Args} ->
             case game:mark(State#state.game, Data) of
                 {NewGame, Moves} ->
                     update(State#state.display, NewGame),
@@ -62,8 +63,13 @@ button(Coord, Frame, Game) ->
 
 update(#display{buttons = Buttons, points = Points}, Game) ->
     lists:foreach(fun (Button) -> update_button(Button, Game) end, Buttons),
-    gs:config(Points,
-              [{label, {text, "Score: " ++ integer_to_list(game:points(Game))}}]).
+    Score = integer_to_list(game:points(Game)),
+    case game:live(Game) of
+        yes ->
+            gs:config(Points, [{label, {text, "Score: " ++ Score}}]);
+        _ ->
+            gs:config(Points, [{label, {text, "GAME OVER, Score: " ++ Score}}])
+    end.
 
 update_button(Button, Game) ->
     Coord   = gs:read(Button, data),
@@ -80,9 +86,3 @@ color(N) ->
 
 image(N) ->
     {image, integer_to_list(N) ++ ".xbm"}.
-
-mark(Button) ->
-    gs:config(Button, [{bg, white}]).
-
-unmark(Button, N) ->
-    gs:config(Button, [{bg, color(N)}]).
