@@ -3,7 +3,7 @@
 
 -export([new/3, mark/2,
          marked/1, width/1, height/1, points/1, live/1,
-         get_element/1]).
+         get_element/2]).
 
 -record(game, {board, tokens, mark, points, live}).
 
