@@ -32,7 +32,7 @@ mark(Game = #game{board = Board, mark = Mark1}, Mark2) ->
         {ok, SwappedBoard} ->
             Tokens = Game#game.tokens,
             Points = Game#game.points,
-            %% Remove any groups that were made recursively until
+            %% Recursively remove any groups that were made, until
             %% there are none.
             {Boards, NewPoints} = board:no_groups(SwappedBoard, Tokens),
             NewGame = Game#game{board = hd(Boards),
@@ -66,6 +66,7 @@ live(#game{live = Answer}) ->
 get_element(#game{board = Board}, Coord) ->
     board:get_element(Board, Coord).
 
+%% Check if there are any legal moves left in Board.
 moves_left(#game{board = Board}) ->
     Width  = board:width(Board),
     Height = board:height(Board),
@@ -76,6 +77,7 @@ moves_left(#game{board = Board}) ->
                               legal_move(C1, C2, Board)],
     length(LegalMoves) > 0.
 
+%% Is swapping C1 and C2 in Board allowed?
 legal_move(C1, C2, Board) ->
     case board:swap(Board, C1, C2) of
         {ok, _} -> true;
