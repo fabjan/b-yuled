@@ -17,7 +17,7 @@ init() ->
     H       = 200,
     WH      = [{width, W}, {height, H}],
     Window  = gs:window(Server, [{configure,true} | WH]),
-    Game    = game:new(8, 8, 5),
+    Game    = game:new(8, 8, 6),
     Display = display(Game, Window),
     config(Display,WH),
     gs:config(Window, {map,true}),
@@ -94,9 +94,9 @@ update_button(Button, Game) ->
     Element = game:get_element(Game, Coord),
     case {Element, game:marked(Game)} of
         {_, Coord} ->
-            gs:config(Button, [{label, image(Element)}, {bg, white}]);
+            gs:config(Button, [{label, image(Element)}, {bg, orange}]);
         {x, _} ->
-            gs:config(Button, [{label, {text, ""}}, {bg, white}]);
+            gs:config(Button, [{label, {text, ""}}, {bg, orange}]);
         _ ->
             gs:config(Button, [{label, image(Element)}, {bg, color(Element)}])
     end.
@@ -106,7 +106,7 @@ animate(Moves, Display) ->
                   Moves).
 
 color(N) ->
-    lists:nth(N, [red, {0,128,0}, {192, 100, 0}, yellow, {64, 128, 255}]).
+    lists:nth(N, [red, {0,128,0}, {192, 100, 0}, yellow, {64, 128, 255}, white]).
 
 image(N) ->
     {image, integer_to_list(N) ++ ".xbm"}.
