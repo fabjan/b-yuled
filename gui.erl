@@ -28,8 +28,8 @@ loop(State) ->
     receive
         %% We got a button click, mark the coordinates on the board
         %% and show the new state.
-        {gs, _Button, click, Data, _Args} ->
-            case game:mark(State#state.game, Data) of
+        {gs, _Button, click, {X, Y}, _Args} ->
+            case game:mark(State#state.game, {X, Y}) of
                 {NewGame, Moves} ->
                     animate(Moves, State#state.display),
                     update(State#state.display, NewGame),
@@ -42,7 +42,11 @@ loop(State) ->
         {gs,_Id,configure,_Data,[W,H|_]} ->
             WH = [{width,W},{height,H}],
             config(State#state.display,WH),
-            loop(State)
+            loop(State);
+        %% Exit when the quit button is pressed.
+        {gs, _Button, click, quit, _Args} ->
+            gs:destroy(State#state.window),
+            exit(ok)
     end.
 
 %% Create a display for Game in Window.
@@ -56,7 +60,9 @@ display(Game, Window) ->
                          Y <- lists:seq(1, Height)],
     Buttons = [button(Coord, Frame, Game) || Coord <- Coords],
     Points  = gs:label(Frame, [{label, {text, "Score: 0"}},
-                               {pack_xy, {{1, Width}, Height + 1}}]),
+                               {pack_xy, {{3, Width}, Height + 1}}]),
+    gs:button(Frame, [{label, {text, "Quit"}}, {data, quit},
+                      {pack_xy, {{1, 2}, Height + 1}}]),
     #display{frame = Frame, width = Width, height = Height,
              buttons = Buttons, points = Points}.
 
