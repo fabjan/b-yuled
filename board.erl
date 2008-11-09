@@ -23,7 +23,7 @@ no_groups(Board, N)
 no_groups(Board, N, Boards, Points) ->
     Marked = mark(Board),
     case points(Marked) of
-        0 -> {[Board | Boards], Points};
+        0 -> {[Board | Boards], round(Points * math:pow(1.1, length(Boards)))};
         MorePoints -> no_groups(refill(Marked, N), N,
                                 [Marked, Board] ++ Boards,
                                 Points + MorePoints)
