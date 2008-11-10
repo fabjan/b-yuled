@@ -43,7 +43,12 @@ loop(State) ->
             WH = [{width,W},{height,H}],
             config(State#state.display,WH),
             loop(State);
-        %% Exit when the quit button is pressed.
+        %% Create a new game when the new_game button is clicked.
+        {gs, _Button, click, new_game, _Args} ->
+            NewGame = game:new(8, 8, 6),
+            update(State#state.display, NewGame),
+            loop(State#state{game = NewGame});
+        %% Exit when the quit button is clicked.
         {gs, _Button, click, quit, _Args} ->
             gs:destroy(State#state.window),
             exit(ok)
@@ -61,8 +66,10 @@ display(Game, Window) ->
     Buttons = [button(Coord, Frame, Game) || Coord <- Coords],
     Points  = gs:label(Frame, [{label, {text, "Score: 0"}},
                                {pack_xy, {{3, Width}, Height + 1}}]),
+    gs:button(Frame, [{label, {text, "New game"}}, {data, new_game},
+                      {pack_xy, {1, Height + 1}}]),
     gs:button(Frame, [{label, {text, "Quit"}}, {data, quit},
-                      {pack_xy, {{1, 2}, Height + 1}}]),
+                      {pack_xy, {2, Height + 1}}]),
     #display{frame = Frame, width = Width, height = Height,
              buttons = Buttons, points = Points}.
 
